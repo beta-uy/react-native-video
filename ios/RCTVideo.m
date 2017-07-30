@@ -303,16 +303,20 @@ static NSString *const timedMetadata = @"timedMetadata";
   NSString *uri = [source objectForKey:@"uri"];
   NSString *type = [source objectForKey:@"type"];
 
-  NSURL *url = (isNetwork || isAsset) ?
-    [NSURL URLWithString:uri] :
-    [[NSURL alloc] initFileURLWithPath:[[NSBundle mainBundle] pathForResource:uri ofType:type]];
-
+    NSURL *url = nil;
   if (isNetwork) {
+    [NSURL URLWithString:uri];
     NSArray *cookies = [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookies];
     AVURLAsset *asset = [AVURLAsset URLAssetWithURL:url options:@{AVURLAssetHTTPCookiesKey : cookies}];
     return [AVPlayerItem playerItemWithAsset:asset];
   }
   else if (isAsset) {
+      NSString *path = [[NSBundle mainBundle] pathForResource:uri ofType:type];
+      if (path != nil) {
+          url = [[NSURL alloc] initFileURLWithPath: path];
+      } else {
+          url = [NSURL fileURLWithPath:uri];
+      }
     AVURLAsset *asset = [AVURLAsset URLAssetWithURL:url options:nil];
     return [AVPlayerItem playerItemWithAsset:asset];
   }
